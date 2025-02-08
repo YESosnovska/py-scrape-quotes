@@ -25,13 +25,6 @@ def parse_single_quote(quote: Tag) -> Quote:
     ))
 
 
-def get_home_page_quotes() -> list[Quote]:
-    text = requests.get(BASE_URL).content
-    soup = BeautifulSoup(text, "html.parser")
-    quotes = soup.select(".quote")
-    return [parse_single_quote(quote) for quote in quotes]
-
-
 def get_single_page_quotes(page_soup: Tag) -> [Quote]:
     quotes = page_soup.select(".quote")
     return [parse_single_quote(quote) for quote in quotes]
@@ -44,18 +37,11 @@ def get_page_quotes() -> [Quote]:
     all_quotes = get_single_page_quotes(first_page_soup)
 
     for page_num in range(2, 11):
-        text = requests.get(BASE_URL, {"page": page_num}).content
+        text = requests.get(BASE_URL + f"page/{page_num}/").content
         next_page_soup = BeautifulSoup(text, "html.parser")
         all_quotes.extend(get_single_page_quotes(next_page_soup))
 
     return all_quotes
-
-
-def write_products_to_csv(quotes: [Quote]) -> None:
-    with open("results.csv", "w") as f:
-        writer = csv.writer(f)
-        writer.writerow(QUOTE_FIELDS)
-        writer.writerows([astuple(quote) for quote in quotes])
 
 
 def main(output_csv_path: str) -> None:
